@@ -7,7 +7,6 @@ import { db } from "../firebase"
 import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore"
 
 export function WaitlistSection() {
-    // ... logic remains the same ...
     const [email, setEmail] = useState("")
     const [submitted, setSubmitted] = useState(false)
     const [loading, setLoading] = useState(false)
@@ -23,7 +22,7 @@ export function WaitlistSection() {
             const querySnapshot = await getDocs(q)
 
             if (!querySnapshot.empty) {
-                setError("YOU'RE ALREADY ON THE WAITLIST! WE'LL BE IN TOUCH.")
+                setError("You're already on the waitlist! We'll be in touch.")
                 setLoading(false)
                 return
             }
@@ -32,81 +31,102 @@ export function WaitlistSection() {
                 email: email.toLowerCase().trim(),
                 created_at: serverTimestamp()
             })
-
             setSubmitted(true)
         } catch (err) {
             console.error("Signup error:", err)
-            setError("SOMETHING WENT WRONG. PLEASE TRY AGAIN.")
+            setError("Something went wrong. Please try again.")
         } finally {
             setLoading(false)
         }
     }
 
     return (
-        <section id="waitlist" className="py-40 bg-background relative overflow-hidden flex items-center justify-center min-h-[80vh]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(41,95,70,0.15),transparent_60%)]" style={{ pointerEvents: 'none' }} />
+        <section id="waitlist" className="relative overflow-hidden" style={{ backgroundColor: "#fbf6e2" }}>
+            <div className="container mx-auto px-6 py-28">
+                <div className="flex flex-col lg:flex-row items-center gap-20">
+                    {/* Grocery bag illustration */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -30 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.8, ease: "easeOut" }}
+                        className="flex-1 flex justify-center"
+                    >
+                        <img
+                            src="/grocery-bag.png"
+                            alt="Get started with Huckle"
+                            className="w-full max-w-xs"
+                        />
+                    </motion.div>
 
-            <div className="container mx-auto px-6 relative z-10">
-                <div className="max-w-4xl mx-auto text-center">
-                    <h2 className="text-5xl md:text-7xl font-black uppercase tracking-widest mb-12 leading-[1.1] drop-shadow-2xl">
-                        READY FOR GROCERIES TO FEEL <span className="text-primary italic">FRESH</span> AGAIN?
-                    </h2>
-                    <p className="text-xl md:text-2xl text-white/60 tracking-widest uppercase font-light mb-20">
-                        JOIN THE WAITLIST TODAY. LAUNCHING MAY 1ST.
-                    </p>
+                    {/* CTA copy + form */}
+                    <div className="flex-1 max-w-lg">
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, ease: "easeOut" }}
+                        >
+                            <p className="text-sm font-semibold text-[#295F46] uppercase tracking-widest mb-4">Early Access</p>
+                            <h2 className="text-4xl md:text-5xl font-bold text-[#1a1a1a] leading-tight mb-6"
+                                style={{ fontFamily: "'Playfair Display', serif" }}>
+                                Get Started Today
+                            </h2>
+                            <p className="text-lg text-[#6b6b6b] font-light mb-10">
+                                Join the waitlist and be the first to know when Huckle launches in your area.
+                                Launching May 1st.
+                            </p>
 
-                    {!submitted ? (
-                        <div className="w-full max-w-2xl mx-auto">
-                            <form
-                                className="flex flex-col md:flex-row gap-4 w-full"
-                                onSubmit={handleSubmit}
-                            >
-                                <div className="relative flex-1">
-                                    <Input
-                                        type="email"
-                                        placeholder="ENTER YOUR EMAIL"
-                                        className="bg-transparent border-b-2 border-white/20 rounded-none text-white focus-visible:ring-0 focus-visible:border-white h-16 px-0 placeholder:text-white/30 uppercase tracking-widest text-lg"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        required
-                                    />
+                            {!submitted ? (
+                                <div>
+                                    <form className="flex flex-col sm:flex-row gap-3" onSubmit={handleSubmit}>
+                                        <Input
+                                            type="email"
+                                            placeholder="Enter your email"
+                                            className="flex-1 rounded-full bg-white border border-[#e5ddc8] text-[#1a1a1a] placeholder:text-[#aaa] h-12 px-5 focus-visible:ring-[#295F46]"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                        />
+                                        <Button
+                                            size="lg"
+                                            className="h-12 px-7 rounded-full font-semibold bg-[#295F46] text-white hover:bg-[#1f4934] transition-colors"
+                                            disabled={loading}
+                                        >
+                                            {loading ? "..." : "Get Early Access"}
+                                        </Button>
+                                    </form>
+
+                                    {error && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 8 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            className="mt-4 flex items-center gap-2 text-[#DF7E4C] text-sm"
+                                        >
+                                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                            <p>{error}</p>
+                                        </motion.div>
+                                    )}
+                                    <p className="mt-5 text-xs text-[#aaa]">
+                                        * Limited to the first 1,000 signups for early bird savings.
+                                    </p>
                                 </div>
-                                <Button
-                                    size="lg"
-                                    className="h-16 px-10 rounded-none font-bold uppercase tracking-widest bg-white text-black hover:bg-accent hover:text-white transition-colors flex gap-4 items-center"
-                                    disabled={loading}
-                                >
-                                    {loading ? "..." : "GET EARLY ACCESS"} <span className="text-2xl leading-none">↗</span>
-                                </Button>
-                            </form>
-
-                            {error && (
+                            ) : (
                                 <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    className="mt-8 flex items-center justify-center gap-3 text-accent uppercase tracking-widest font-bold"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="flex flex-col gap-4 py-8"
                                 >
-                                    <AlertCircle className="w-5 h-5" />
-                                    <p>{error}</p>
+                                    <div className="w-16 h-16 rounded-full bg-[#295F46]/10 flex items-center justify-center">
+                                        <CheckCircle2 className="w-8 h-8 text-[#295F46]" />
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-[#1a1a1a]"
+                                        style={{ fontFamily: "'Playfair Display', serif" }}>You're on the list!</h3>
+                                    <p className="text-[#6b6b6b]">Check your email for a confirmation soon.</p>
                                 </motion.div>
                             )}
-                            <p className="mt-8 text-sm text-white/30 uppercase tracking-[0.2em]">
-                                * LIMITED TO FIRST 1,000 SIGNUPS FOR EARLY BIRD SAVINGS.
-                            </p>
-                        </div>
-                    ) : (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="flex flex-col items-center gap-6 py-12"
-                        >
-                            <div className="w-24 h-24 border border-primary flex items-center justify-center group">
-                                <CheckCircle2 className="w-12 h-12 text-primary group-hover:scale-110 transition-transform duration-500" />
-                            </div>
-                            <h3 className="text-4xl font-black uppercase tracking-widest text-white">YOU'RE ON THE LIST</h3>
-                            <p className="text-white/50 tracking-widest uppercase">CHECK YOUR EMAIL FOR A CONFIRMATION SOON.</p>
                         </motion.div>
-                    )}
+                    </div>
                 </div>
             </div>
         </section>
@@ -115,23 +135,25 @@ export function WaitlistSection() {
 
 export function Footer() {
     return (
-        <footer className="py-12 bg-background border-t border-white/10 uppercase tracking-widest text-xs font-semibold">
+        <footer className="py-10 border-t" style={{ backgroundColor: "#ffffff", borderColor: "#e5ddc8" }}>
             <div className="container mx-auto px-6">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div className="flex items-center gap-3">
-                        <Leaf className="w-6 h-6 text-primary" />
-                        <span className="text-xl tracking-[0.2em] text-white">HUCKLE</span>
+                <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+                    <div className="flex items-center gap-2">
+                        <Leaf className="w-5 h-5 text-[#295F46]" />
+                        <span className="text-lg font-bold text-[#1a1a1a]"
+                            style={{ fontFamily: "'Playfair Display', serif" }}>Huckle</span>
                     </div>
 
-                    <div className="flex gap-8">
-                        <a href="https://instagram.com/hucklemarket" target="_blank" rel="noreferrer" className="text-white/50 hover:text-white transition-colors flex items-center gap-3">
-                            <Instagram className="w-5 h-5" />
-                            <span>INSTAGRAM.COM/HUCKLEMARKET</span>
+                    <div className="flex gap-6 text-sm text-[#6b6b6b]">
+                        <a href="https://instagram.com/hucklemarket" target="_blank" rel="noreferrer"
+                            className="hover:text-[#1a1a1a] transition-colors flex items-center gap-2">
+                            <Instagram className="w-4 h-4" />
+                            <span>@hucklemarket</span>
                         </a>
                     </div>
 
-                    <p className="text-white/30">
-                        © 2026 HUCKLE MARKET. ALL RIGHTS RESERVED.
+                    <p className="text-xs text-[#aaa]">
+                        © 2026 Huckle Market. All rights reserved.
                     </p>
                 </div>
             </div>

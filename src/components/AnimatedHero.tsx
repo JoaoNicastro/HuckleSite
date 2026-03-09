@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from "react"
+import { useScroll, useTransform, motion as m } from "framer-motion"
 import { Input } from "./ui/input"
 import { Button } from "./ui/button"
 import { db } from "../firebase"
 import { collection, addDoc, serverTimestamp, query, where, getDocs } from "firebase/firestore"
 import { CheckCircle2, AlertCircle } from "lucide-react"
 
-const FRAME_COUNT = 210
-// Each frame gets this many pixels of scroll distance (higher = slower/smoother)
+const FRAME_COUNT = 165
+// Each frame gets this many pixels of scroll distance
 const PX_PER_FRAME = 14
 // Total scroll travel for the animation section
 const SCROLL_HEIGHT = FRAME_COUNT * PX_PER_FRAME
 
 function getFrameUrl(i: number) {
-    return `/WatermelonPictures/ezgif-frame-${String(i).padStart(3, "0")}.png`
+    return `/videozip/ezgif-frame-${String(i).padStart(3, "0")}.jpg`
 }
 
 export function AnimatedHero() {
@@ -23,6 +24,14 @@ export function AnimatedHero() {
     const rafRef = useRef<number>(0)
     const [loaded, setLoaded] = useState(false)
     const [loadProgress, setLoadProgress] = useState(0)
+
+    // Scroll-driven UI fade — hero text fades as user scrolls in
+    const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end start"] })
+    const overlayOpacity = useTransform(scrollYProgress, [0, 0.18], [1, 0])
+    const overlayY = useTransform(scrollYProgress, [0, 0.18], [0, -30])
+
+    const endOverlayOpacity = useTransform(scrollYProgress, [0.3, 0.5], [0, 1])
+    const endOverlayY = useTransform(scrollYProgress, [0.3, 0.5], [30, 0])
 
     // Email form state
     const [email, setEmail] = useState("")
@@ -41,12 +50,9 @@ export function AnimatedHero() {
             img.onload = () => {
                 count++
                 setLoadProgress(Math.round((count / FRAME_COUNT) * 100))
-                if (count === FRAME_COUNT) {
-                    setLoaded(true)
-                }
+                if (count === FRAME_COUNT) setLoaded(true)
             }
             img.onerror = () => {
-                // count even on error so we don't hang
                 count++
                 setLoadProgress(Math.round((count / FRAME_COUNT) * 100))
                 if (count === FRAME_COUNT) setLoaded(true)
@@ -69,7 +75,6 @@ export function AnimatedHero() {
         const displayW = window.innerWidth
         const displayH = window.innerHeight
 
-        // Only resize canvas if dimensions actually changed (avoids full redraws)
         if (canvas.width !== displayW * dpr || canvas.height !== displayH * dpr) {
             canvas.width = displayW * dpr
             canvas.height = displayH * dpr
@@ -78,36 +83,30 @@ export function AnimatedHero() {
             ctx.scale(dpr, dpr)
         }
 
-        // Fill black background
-        ctx.fillStyle = "#000000"
+        // Fill cream background to match site palette
+        ctx.fillStyle = "#fbf6e2"
         ctx.fillRect(0, 0, displayW, displayH)
 
-        // "contain" scaling — keep full watermelon visible
-        const scale = Math.min(displayW / img.naturalWidth, displayH / img.naturalHeight)
+        // "cover" scaling — fill whole screen
+        const scale = Math.max(displayW / img.naturalWidth, displayH / img.naturalHeight)
         const w = img.naturalWidth * scale
         const h = img.naturalHeight * scale
         const x = (displayW - w) / 2
         const y = (displayH - h) / 2
 
         ctx.drawImage(img, x, y, w, h)
-
-        // Cover the Veo watermark (bottom-right corner of the source frames)
-        ctx.fillStyle = "#000000"
-        ctx.fillRect(displayW - 160, displayH - 60, 160, 60)
     }
 
     // ── Scroll → frame mapping via rAF ──────────────────────────────────────
     useEffect(() => {
         if (!loaded) return
 
-        // Draw first frame immediately
         drawFrame(0)
 
         const onScroll = () => {
             const section = sectionRef.current
             if (!section) return
             const rect = section.getBoundingClientRect()
-            // scrolled is how far past the top of the section we've gone
             const scrolled = -rect.top
             const progress = Math.max(0, Math.min(1, scrolled / (SCROLL_HEIGHT - window.innerHeight)))
             frameRef.current = Math.min(FRAME_COUNT - 1, Math.floor(progress * (FRAME_COUNT - 1)))
@@ -162,109 +161,118 @@ export function AnimatedHero() {
 
     return (
         <>
-            {/* ── Loading overlay ─────────────────────────────────── */}
+            {/* ── Loading overlay — matches app splash screen ────────── */}
             {!loaded && (
-                <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center">
-                    <div className="text-white/40 text-sm font-mono tracking-widest uppercase mb-4">
-                        Loading frames…
-                    </div>
-                    <div className="w-48 h-[2px] bg-white/10 rounded-full overflow-hidden">
+                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: "#fbf6e2" }}>
+                    <span className="text-4xl font-bold mb-8 text-[#1a1a1a]" style={{ fontFamily: "'Playfair Display', serif" }}>
+                        Huckle
+                    </span>
+                    <div className="w-48 h-[2px] bg-[#e5ddc8] rounded-full overflow-hidden">
                         <div
-                            className="h-full bg-green-400 rounded-full transition-all duration-75"
+                            className="h-full bg-[#295F46] rounded-full transition-all duration-75"
                             style={{ width: `${loadProgress}%` }}
                         />
                     </div>
-                    <div className="text-white/20 text-xs mt-2 font-mono">{loadProgress}%</div>
+                    <div className="text-[#6b6b6b] text-xs mt-3 font-mono">{loadProgress}%</div>
                 </div>
             )}
 
             {/*
-              The outer section is exactly SCROLL_HEIGHT tall so the browser gives
-              us enough scroll runway to step through every frame.
+              Outer section is SCROLL_HEIGHT tall so the browser gives
+              us enough scroll runway to step through all frames.
               The inner sticky div pins the canvas + UI to the viewport.
             */}
             <section
                 ref={sectionRef}
                 style={{ height: `${SCROLL_HEIGHT}px` }}
-                className="relative w-full bg-black"
+                className="relative w-full"
             >
                 <div className="sticky top-0 h-screen w-full overflow-hidden">
                     {/* Canvas — occupies full viewport */}
                     <canvas
                         ref={canvasRef}
                         className="absolute inset-0"
-                        style={{ display: "block", background: "#000" }}
+                        style={{ display: "block", background: "#fbf6e2" }}
                     />
 
-                    {/* UI overlay — fades out after 20% scroll progress */}
-                    <div
+                    {/* Bottom gradient blends hero into next section */}
+                    <div className="absolute bottom-0 left-0 right-0 h-48 z-20 pointer-events-none" style={{ background: "linear-gradient(to bottom, transparent, #fbf6e2)" }} />
+
+                    {/* UI overlay — fades out as user scrolls into animation */}
+                    <m.div
                         className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6"
-                        style={{
-                            // Pointer events only active at top (before animation takes over)
-                            pointerEvents: "none",
-                        }}
+                        style={{ opacity: overlayOpacity, y: overlayY, pointerEvents: "none" }}
                     >
-                        {/* Text + form housed in a centered container */}
                         <div
-                            className="flex flex-col items-center gap-8 max-w-4xl w-full"
+                            className="flex flex-col items-center gap-6 max-w-3xl w-full"
                             style={{ pointerEvents: "auto" }}
                         >
-                            <h1 className="text-6xl md:text-8xl font-black uppercase tracking-widest text-white leading-[1.1] drop-shadow-2xl">
-                                FRESH FROM THE FARM, <br />
-                                <span className="text-primary italic">STRAIGHT TO YOUR DOOR.</span>
+                            <h1 className="text-5xl md:text-7xl font-bold leading-[1.1] text-[#1a1a1a] drop-shadow-sm"
+                                style={{ fontFamily: "'Playfair Display', serif" }}>
+                                Support your local farms.<br />
+                                <em className="text-[#295F46]">Get better ingredients.</em>
                             </h1>
 
-                            <p className="text-lg md:text-xl text-white/60 max-w-2xl font-light tracking-wide">
-                                CUT OUT THE MIDDLEMAN. FRESHER PRODUCE, UP TO 30% SAVINGS, AND DIRECT SUPPORT FOR LOCAL FARMERS.
-                            </p>
-
                             {!submitted ? (
-                                <div className="w-full max-w-lg mt-8">
+                                <div className="w-full max-w-md mt-2">
                                     <form
                                         onSubmit={handleSubmit}
-                                        className="flex flex-col md:flex-row gap-4 w-full"
+                                        className="flex flex-col sm:flex-row gap-3 w-full"
                                     >
-                                        <div className="relative flex-1">
-                                            <Input
-                                                type="email"
-                                                placeholder="ENTER YOUR EMAIL"
-                                                className="bg-transparent border-b-2 border-white/20 rounded-none text-white focus-visible:ring-0 focus-visible:border-white h-14 px-0 placeholder:text-white/30 uppercase tracking-widest text-sm"
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                required
-                                            />
-                                        </div>
+                                        <Input
+                                            type="email"
+                                            placeholder="Enter your email"
+                                            className="flex-1 rounded-full bg-white border border-[#e5ddc8] text-[#1a1a1a] placeholder:text-[#aaa] h-12 px-5 focus-visible:ring-[#295F46]"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            required
+                                        />
                                         <Button
                                             size="lg"
-                                            className="h-14 px-8 rounded-none font-bold uppercase tracking-widest bg-white text-black hover:bg-accent hover:text-white transition-colors flex gap-2 items-center"
+                                            className="h-12 px-7 rounded-full font-semibold bg-[#295F46] text-white hover:bg-[#1f4934] transition-colors"
                                             disabled={loading}
                                         >
-                                            {loading ? "..." : "JOIN WAITLIST"} <span className="text-xl leading-none">↗</span>
+                                            {loading ? "..." : "Join Waitlist"}
                                         </Button>
                                     </form>
                                     {error && (
-                                        <p className="mt-4 text-accent text-sm font-medium flex items-center gap-2 justify-center uppercase tracking-widest">
+                                        <p className="mt-3 text-[#DF7E4C] text-sm flex items-center gap-1 justify-center">
                                             <AlertCircle className="w-4 h-4" /> {error}
                                         </p>
                                     )}
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center gap-4 mt-8">
-                                    <CheckCircle2 className="w-12 h-12 text-primary" />
-                                    <span className="text-2xl font-bold uppercase tracking-widest text-white">YOU'RE IN</span>
+                                <div className="flex flex-col items-center gap-3 mt-2">
+                                    <CheckCircle2 className="w-10 h-10 text-[#295F46]" />
+                                    <span className="text-xl font-semibold text-[#1a1a1a]">You're on the list!</span>
                                 </div>
                             )}
                         </div>
 
                         {/* Scroll hint */}
                         <div
-                            className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4"
+                            className="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3"
                             style={{ pointerEvents: "none" }}
                         >
-                            <span className="text-white/30 text-xs tracking-[0.4em] uppercase font-bold">SCROLL TO EXPLORE</span>
-                            <div className="w-[1px] h-16 bg-gradient-to-b from-white/0 via-white/50 to-white/0" />
+                            <span className="text-[#6b6b6b] text-xs tracking-widest">Scroll to explore</span>
+                            <div className="w-[1px] h-12 bg-gradient-to-b from-transparent via-[#295F46]/50 to-transparent" />
                         </div>
-                    </div>
+                    </m.div>
+
+                    {/* Middle sequence overlay — fades in while scrolling down */}
+                    <m.div
+                        className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-6 pb-24"
+                        style={{ opacity: endOverlayOpacity, y: endOverlayY, pointerEvents: "none" }}
+                    >
+                        <h2
+                            className="text-xl md:text-2xl font-bold text-[#1a1a1a] max-w-sm tracking-tight drop-shadow-sm"
+                            style={{ fontFamily: "'Playfair Display', serif", lineHeight: 1.4 }}
+                        >
+                            We source the highest<br />
+                            quality local produce, and<br />
+                            deliver it to your doorstep
+                        </h2>
+                    </m.div>
                 </div>
             </section>
         </>

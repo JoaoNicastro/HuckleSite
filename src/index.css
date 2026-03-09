@@ -1,54 +1,52 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: #f0fdf4;
-  --color-primary-100: #dcfce7;
-  --color-primary-500: #22c55e;
-  --color-primary-600: #16a34a;
-  --color-primary-700: #15803d;
-
+  --color-cream: #fbf6e2;
+  --color-cream-dark: #f0e9cc;
   --color-huckle-green: #295F46;
   --color-huckle-orange: #DF7E4C;
-
-  --font-sans: "Inter", "Outfit", system-ui, sans-serif;
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
 }
 
 @layer base {
   :root {
-    --background: #000000;
-    --foreground: #ffffff;
+    --background: #fbf6e2;
+    --foreground: #1a1a1a;
 
-    --card: #0a0a0a;
-    --card-foreground: #ffffff;
+    --card: #ffffff;
+    --card-foreground: #1a1a1a;
 
-    --popover: #0a0a0a;
-    --popover-foreground: #ffffff;
+    --popover: #ffffff;
+    --popover-foreground: #1a1a1a;
 
     --primary: #295F46;
     --primary-foreground: #ffffff;
 
-    --secondary: #1a1a1a;
-    --secondary-foreground: #ffffff;
+    --secondary: #f0e9cc;
+    --secondary-foreground: #1a1a1a;
 
-    --muted: #1a1a1a;
-    --muted-foreground: #888888;
+    --muted: #f0e9cc;
+    --muted-foreground: #6b6b6b;
 
     --accent: #DF7E4C;
     --accent-foreground: #ffffff;
 
-    --destructive: #ef4444;
+    --destructive: #c0392b;
     --destructive-foreground: #ffffff;
 
-    --border: #222222;
-    --input: #222222;
-    --ring: #DF7E4C;
-    --radius: 0.5rem;
+    --border: #e5ddc8;
+    --input: #e5ddc8;
+    --ring: #295F46;
+    --radius: 9999px;
   }
 }
 
 @layer base {
   * {
     border-color: var(--border);
+    box-sizing: border-box;
   }
 
   body {
@@ -56,20 +54,16 @@
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
-    letter-spacing: 0.025em;
-    /* Slight tracking for all text */
   }
 
-  /* Brutalist/Minimalist typography styles often use massive headings */
   h1,
   h2,
   h3,
   h4,
   h5,
   h6 {
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    /* Wide tracking for headers */
-    font-weight: 700;
+    font-family: var(--font-serif);
+    font-weight: 600;
+    letter-spacing: -0.01em;
   }
 }
