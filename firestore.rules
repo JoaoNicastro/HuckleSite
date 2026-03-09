@@ -1,0 +1,16 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /waitlist_signups/{signup} {
+      // Allow anyone to sign up
+      allow create: if true;
+      
+      // Restrict reading to admin (for now, false until we add auth)
+      // The admin dashboard will use service role/privileged access if needed 
+      // or we can add a simple password check later.
+      allow read: if false;
+      allow update, delete: if false;
+    }
+  }
+}

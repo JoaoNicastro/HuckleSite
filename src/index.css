@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary-50: #f0fdf4;
+  --color-primary-100: #dcfce7;
+  --color-primary-500: #22c55e;
+  --color-primary-600: #16a34a;
+  --color-primary-700: #15803d;
+
+  --color-huckle-green: #295F46;
+  --color-huckle-orange: #DF7E4C;
+
+  --font-sans: "Inter", "Outfit", system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    --background: #000000;
+    --foreground: #ffffff;
+
+    --card: #0a0a0a;
+    --card-foreground: #ffffff;
+
+    --popover: #0a0a0a;
+    --popover-foreground: #ffffff;
+
+    --primary: #295F46;
+    --primary-foreground: #ffffff;
+
+    --secondary: #1a1a1a;
+    --secondary-foreground: #ffffff;
+
+    --muted: #1a1a1a;
+    --muted-foreground: #888888;
+
+    --accent: #DF7E4C;
+    --accent-foreground: #ffffff;
+
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+
+    --border: #222222;
+    --input: #222222;
+    --ring: #DF7E4C;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    letter-spacing: 0.025em;
+    /* Slight tracking for all text */
+  }
+
+  /* Brutalist/Minimalist typography styles often use massive headings */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    /* Wide tracking for headers */
+    font-weight: 700;
+  }
+}
